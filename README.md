@@ -1,8 +1,9 @@
-Stellar Seat Booking System (ChaiCode Hackathon)
+# Stellar Seat Booking System (ChaiCode Hackathon)
 
 This is a backend-focused seat booking system built on top of a starter codebase.
+---
 
-*Overview*
+## Overview
 
 The system allows users to:
 - Register and login
@@ -12,7 +13,9 @@ The system allows users to:
 - Prevent double booking of seats
 - Associate each booking with a real user
 
-*Tech Stack*
+---
+
+## Tech Stack
 
 - Node.js (Express)
 - PostgreSQL (pg)
@@ -21,14 +24,18 @@ The system allows users to:
 - Joi validation
 - Cookies (httpOnly auth storage)
 
-*Authentication Flow*
+---
+
+## Authentication Flow
 
 1. User signs up → stored in PostgreSQL
 2. User logs in → receives access + refresh tokens (cookies)
 3. Middleware verifies access token
 4. Authenticated user can access protected routes
 
-*Booking Flow*
+---
+
+## Seat Booking Flow
 
 1. User logs in
 2. User selects a seat
@@ -37,30 +44,51 @@ The system allows users to:
 5. Seat is booked and linked to user_id
 6. Duplicate booking is prevented
 
-*Database Schema*
-Users Table
+---
+
+## Database Schema
+
+### Users Table
+
 id, name, email, password, refresh_token, created_at, updated_at
-Seats Table
+`user_id` references `users(id)`
+
+### Seats Table
+
 id, isbooked, name, user_id
 user_id → references users(id)
 
-*API Endpoints*
-- Auth Routes
-POST /auth/signup → Register user
-POST /auth/login  → Login user
-POST /auth/logout → Logout user
+---
 
-*Booking*
-PUT /:id/:name → Book seat (Protected route)
+## API Endpoints
 
-*Security Features*
+###  Auth Routes
+
+- POST `/auth/signup` -> Register user
+- POST `/auth/login` -> Login user
+- POST `/auth/logout` -> Logout user
+
+---
+
+###  Booking Route
+
+PUT /:id/:name -> Book seat (Protected route)
+
+---
+
+##  Security Features
+
 - JWT authentication
 - Password hashing (bcrypt)
 - SQL injection prevention (parameterized queries)
-- Transaction-based booking (BEGIN/COMMIT/ROLLBACK)
-- Row-level locking (FOR UPDATE)
+- Transaction-based booking (BEGIN / COMMIT / ROLLBACK)
+- Row-level locking (`FOR UPDATE`)
+- Protected routes using middleware
 
-*How to Run*
+---
 
+##  How to Run
+
+```bash
 npm install
 node index.mjs
