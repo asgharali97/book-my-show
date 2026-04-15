@@ -73,7 +73,7 @@
         const tbl = document.getElementById("tbl");
         const res = await fetch("/seats");
         const resarray = await res.json();
-        const j = resarray.sort((a, b) => a.id - b.id);
+        const j = resarray.data.sort((a, b) => a.id - b.id);
         let tr;
         for (let i = 0; i < j.length; i++) {
           if (i % 8 === 0) tr = document.createElement("tr");

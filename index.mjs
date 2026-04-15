@@ -13,7 +13,9 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import authenticate from "./auth/auth.middleware.mjs";
+import authenticate from "./auth/auth.middleware.mjs"
+import ApiError from "./utils/api-error.mjs";
+import ApiResponse from "./utils/api-response.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const port = process.env.PORT || 8080;
@@ -45,7 +47,7 @@ app.get("/", (req, res) => {
 //get all seats
 app.get("/seats", async (req, res) => {
   const result = await pool.query("select * from seats"); // equivalent to Seats.find() in mongoose
-  res.send(result.rows);
+  return ApiResponse.ok(res, "Seats fetched successfully", result.rows);
 });
 
 //book a seat give the seatId and your name
@@ -72,8 +74,9 @@ app.put("/:id/:name", authenticate, async (req, res) => {
     //if no rows found then the operation should fail can't book
     // This shows we Do not have the current seat available for booking
     if (result.rowCount === 0) {
-      res.send({ error: "Seat already booked" });
-      return;
+      await conn.query("ROLLBACK");
+      conn.release();
+      return ApiResponse.badRequest(res, "Seat is already booked");
     }
     //if we get the row, we are safe to update
     const sqlU = "UPDATE seats SET isbooked = 1, name = $2, user_id = $3 WHERE id = $1";
@@ -82,10 +85,20 @@ app.put("/:id/:name", authenticate, async (req, res) => {
     //end transaction by committing
     await conn.query("COMMIT");
     conn.release(); // release the connection back to the pool (so we do not keep the connection open unnecessarily)
-    res.send(updateResult);
+    return ApiResponse.ok(res, "Seat booked successfully", updateResult);
   } catch (ex) {
     console.log(ex);
-    res.send(500);
+
+    if (conn) {
+      try {
+        await conn.query("ROLLBACK");
+        conn.release();
+      } catch (e) {
+        console.log("rollback error", e);
+      }
+    }
+
+    return ApiResponse.internal(res, "Something went wrong");
   }
 });
 

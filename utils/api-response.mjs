@@ -23,6 +23,15 @@ class ApiResponse {
         return res.status(204).send()
     }
 
+    static badRequest(res) {
+        return res.status(400).json(
+            {
+                sucess: false,
+                message: "Bad request"
+            }
+        )
+    }
+
 }
 
 export default ApiResponse
