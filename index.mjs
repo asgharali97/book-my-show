@@ -6,12 +6,14 @@
 // INSERT INTO seats (isbooked)
 // SELECT 0 FROM generate_series(1, 20);
 
+import "dotenv/config";
 import express from "express";
 import pg from "pg";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import cors from "cors";
-
+import cookieParser from "cookie-parser";
+import authenticate from "./auth/auth.middleware.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const port = process.env.PORT || 8080;
@@ -20,6 +22,7 @@ const port = process.env.PORT || 8080;
 // Pool is nothing but group of connections
 // If you pick one connection out of the pool and release it
 // the pooler will keep that connection open for sometime to other clients to reuse
+
 const pool = new pg.Pool({
   host: "localhost",
   port: 5433,
@@ -33,6 +36,8 @@ const pool = new pg.Pool({
 
 const app = new express();
 app.use(cors());
+app.use(express.json())
+app.use(cookieParser())
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -45,7 +50,7 @@ app.get("/seats", async (req, res) => {
 
 //book a seat give the seatId and your name
 
-app.put("/:id/:name", async (req, res) => {
+app.put("/:id/:name", authenticate, async (req, res) => {
   try {
     const id = req.params.id;
     const name = req.params.name;
@@ -82,5 +87,10 @@ app.put("/:id/:name", async (req, res) => {
     res.send(500);
   }
 });
+
+// Routes
+import authRoutes from './auth/auth.routes.mjs'
+
+app.use('/auth', authRoutes)
 
 app.listen(port, () => console.log("Server starting on port: " + port));
